@@ -138,6 +138,7 @@ async def import_music_by_radio(msg: Message, radio_url: str= ''):
             radio_id = matched_obj.groups()[0]
         else:
             raise Exception('输入格式有误。\n正确格式为: /radio {playlist_url} 或 /电台 {playlist_url}')
+        await msg.channel.send("正在逐条导入电台节目，请稍候")
         result = await fetch_radio_by_id(radio_id=radio_id)
         if not result:
             raise Exception('电台为空哦，请检查你的输入')
@@ -301,6 +302,21 @@ async def remove_music_in_play_list(msg: Message, music_number: str=""):
                 removed_music = play_list[music_number - 1]
                 del settings.playqueue[music_number - 1]
                 await msg.channel.send(f"已将歌曲 {removed_music[0]}-{removed_music[1]} 从播放列表移除")
+
+@bot.command(name='clear', aliases=['清空'])
+@log(command='clear')
+@ban
+@warn
+async def clear_playlist(msg: Message):
+    length = len(settings.playqueue)
+    if not length:
+        raise Exception("播放列表中没有任何歌曲哦")
+    else:
+        await msg.channel.send("正在清空播放列表，请稍候")
+        settings.playqueue.clear()
+        await stop_container(settings.container_name)
+        await msg.channel.send("播放列表已清空")
+        settings.played = 0
 
 @bot.command(name="top", aliases=["置顶", "顶"])
 @log(command="top")
